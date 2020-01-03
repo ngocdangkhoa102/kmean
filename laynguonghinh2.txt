@@ -1,0 +1,35 @@
+import cv2 as cv 
+import numpy as np 
+
+kernel = np.ones((3,2),np.uint8)
+im = cv.imread("test2.jpg")
+grayim = cv.cvtColor(im, cv.COLOR_BGR2GRAY)
+
+ret,th1 = cv.threshold(grayim,172,255,cv.THRESH_BINARY_INV)
+
+close = cv.morphologyEx(th1, cv.MORPH_CLOSE, kernel)
+imbin = cv.Canny(im,32,132)
+
+contours, hierarchy = cv.findContours(imbin, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+
+rightlist = [7,11,19,20,26,29,34,
+            36,38,39,56,61,77,87,93,
+            95,97,98,105,107,108,120,
+            121,122,127,134,135,140,
+            143,147,149,150,155,156,
+            157,160,166,168,169,174,
+            176,177,178,179]
+X = []
+for index in rightlist:
+    contour = contours[index]
+    x,y,w,h = cv.boundingRect(contour)
+    X.append([x,y])
+    cv.rectangle(im, (x, y), (x + w, y + h), (0, 255,0), 2)
+    cv.imshow("result",im)
+
+X = np.reshape(X,(-1,2))
+print(len(X))
+cv.imshow("result",im)
+cv.waitKey(0)
+cv.destroyAllWindows() 

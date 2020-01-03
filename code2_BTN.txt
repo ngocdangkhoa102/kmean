@@ -1,0 +1,95 @@
+from __future__ import print_function 
+import numpy as np
+import cv2 as cv
+import matplotlib.pyplot as plt
+from scipy.spatial.distance import cdist
+import random
+np.random.seed(11)
+
+def random_color():
+    color = random.randint(1,8)
+    if color == 1:
+        return '^k'
+    elif color == 2:
+        return '^b'
+    elif color == 3:
+        return '^g'
+    elif color == 4:
+        return '^r'
+    elif color == 5:
+        return '^c'
+    elif color == 6:
+        return '^m'
+    else:
+        return '^y'
+
+def kmeans_display(X, labels):
+    K = np.amax(labels) + 1
+    for index in range(0,K):
+        X0 = X[label == index,:]
+        plt.plot(X0[:, 0], X0[:, 1], random_color(), markersize = 4, alpha = .8)
+
+    plt.axis('equal')
+    plt.plot()
+    plt.show()
+
+def write_len(position,arr,image):
+    font = cv.FONT_HERSHEY_SIMPLEX 
+    fontScale = 1
+    color = (255, 0, 0)  
+    thickness = 2
+    offsetx=-20
+    offsety=-20
+    x = int(position[0]+offsetx)
+    y = int(position[1]+offsety)
+    org = (x,y)
+    cv.putText(image, str(len(arr)), org, font,  
+                   fontScale, color, thickness, cv.LINE_AA) 
+def countAndShow(X,centers,labels,image):
+    K = np.amax(labels) + 1
+    for index in range(0,K):
+        cluster = X [labels == index,:]
+        position = centers[index]
+        write_len(position,cluster,image)
+
+kernel = np.ones((3,2),np.uint8)
+im = cv.imread("test2.jpg")
+grayim = cv.cvtColor(im, cv.COLOR_BGR2GRAY)
+
+ret,th1 = cv.threshold(grayim,172,255,cv.THRESH_BINARY_INV)
+
+close = cv.morphologyEx(th1, cv.MORPH_CLOSE, kernel)
+imbin = cv.Canny(im,32,132)
+
+contours, hierarchy = cv.findContours(imbin, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+
+rightlist = [7,11,19,20,26,29,34,
+            36,38,39,56,61,77,87,93,
+            95,97,98,105,107,108,120,
+            121,122,127,134,135,140,
+            143,147,149,150,155,156,
+            157,160,166,168,169,174,
+            176,177,178,179]
+X = []
+for index in rightlist:
+    contour = contours[index]
+    x,y,w,h = cv.boundingRect(contour)
+    X.append([x,y])
+    cv.rectangle(im, (x, y), (x + w, y + h), (0, 255,0), 2)
+    cv.imshow("result",im)
+
+#cv.imshow("result",im)
+X = np.reshape(X,(-1,2))
+
+from sklearn.cluster import KMeans
+kmeans = KMeans(n_clusters=11, random_state=0).fit(X)
+labels = kmeans.predict(X)
+#kmeans_display(X,labels)
+
+centers = kmeans.cluster_centers_
+countAndShow(X,centers,labels,im);
+cv.imshow("result",im)
+cv.waitKey(0)
+
+cv.destroyAllWindows()

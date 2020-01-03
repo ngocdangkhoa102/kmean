@@ -1,0 +1,23 @@
+import cv2 as cv 
+import numpy as np 
+
+kernel = np.ones((3,2),np.uint8)
+im = cv.imread("test.jpg")
+grayim = cv.cvtColor(im, cv.COLOR_BGR2GRAY)
+
+ret,th1 = cv.threshold(grayim,172,255,cv.THRESH_BINARY_INV)
+
+close = cv.morphologyEx(th1, cv.MORPH_CLOSE, kernel)
+
+contours, hierarchy = cv.findContours(close, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+
+X = []
+for contour in contours:
+    x,y,w,h = cv.boundingRect(contour)
+    X.append([x,y])
+    cv.rectangle(im, (x, y), (x + w, y + h), (0, 255,0), 2)
+
+X = np.reshape(X,(-1,2))
+cv.imshow("result",im)
+cv.waitKey(0)
+cv.destroyAllWindows() 
